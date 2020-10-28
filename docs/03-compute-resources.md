@@ -2,7 +2,7 @@
 
 Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. These will be provisioned in virtual machines.
 
-A totla of 7 VMs will be used as follows:
+A total of 7 VMs will be used as follows:
 
 1 x Load Balancer
 3 x Control plane nodes
@@ -33,6 +33,8 @@ on each server to ensure all packages are up-to-date.  While not absoutely neces
 apt install net-tools
 ```
 
+For the virtual machines, thet are several options available icnlduing using toos like VMWare Workstation or Oracle VirtualBox.  For my purposes, I already had VMWare ESXi 7.0 installed on an unused PC.  You can obtain a free license from VMware.  There are limitations like the maxium number of vCPUs that can be assigned to a VM, but you will not hit any of those limits for this cluster.
+
 
 
 ## Networking
@@ -51,11 +53,13 @@ Kubernetes uses threee different network CIDRs.  My infrastructure network is on
 
 ### Firewall Rules
 
+The variousnodes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu wll not have any firewall enabled.
+
 
 
 ### Kubernetes Public IP Address
 
-KeySey Hightowers uses an external load balancer to expose the cluster.  That loadbalancer would distrbute requests amonst the three control plane nodes.  Since this install is local on bare metal, I will use a single server running NGINX that will act as the load balancer.
+Keylsey Hightower uses an external load balancer to expose the cluster.  That load balancer would distrbute requests amonst the three control plane nodes.  Since this install is local on bare metal, I will use a single server running NGINX that will act as the load balancer.
 
 
 ## Servers
@@ -79,67 +83,7 @@ Replace with your actual IP adrdesses and hostnames.
 
 ## Configuring SSH Access
 
-SSH will be used to configure the controller and worker instances. When connecting to compute instances for the first time SSH keys will be generated for you and stored in the project or instance metadata as described in the [connecting to instances](https://cloud.google.com/compute/docs/instances/connecting-to-instance) documentation.
+SSH will be used to configure the controller and worker instances. Be sure to insatll and configure SSH on each server.  It is also recommendeded that you use SSH keys to make the use of ssh a lot easier.  Setting up the use of SSH keys is beyond hte scope of this document, but there are many guies on how to do that on the internet.
 
-Test SSH access to the `controller-0` compute instances:
-
-```
-gcloud compute ssh controller-0
-```
-
-If this is your first time connecting to a compute instance SSH keys will be generated for you. Enter a passphrase at the prompt to continue:
-
-```
-WARNING: The public SSH key file for gcloud does not exist.
-WARNING: The private SSH key file for gcloud does not exist.
-WARNING: You do not have an SSH key for gcloud.
-WARNING: SSH keygen will be executed to generate a key.
-Generating public/private rsa key pair.
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-```
-
-At this point the generated SSH keys will be uploaded and stored in your project:
-
-```
-Your identification has been saved in /home/$USER/.ssh/google_compute_engine.
-Your public key has been saved in /home/$USER/.ssh/google_compute_engine.pub.
-The key fingerprint is:
-SHA256:nz1i8jHmgQuGt+WscqP5SeIaSy5wyIJeL71MuV+QruE $USER@$HOSTNAME
-The key's randomart image is:
-+---[RSA 2048]----+
-|                 |
-|                 |
-|                 |
-|        .        |
-|o.     oS        |
-|=... .o .o o     |
-|+.+ =+=.+.X o    |
-|.+ ==O*B.B = .   |
-| .+.=EB++ o      |
-+----[SHA256]-----+
-Updating project ssh metadata...-Updated [https://www.googleapis.com/compute/v1/projects/$PROJECT_ID].
-Updating project ssh metadata...done.
-Waiting for SSH key to propagate.
-```
-
-After the SSH keys have been updated you'll be logged into the `controller-0` instance:
-
-```
-Welcome to Ubuntu 20.04 LTS (GNU/Linux 5.4.0-1019-gcp x86_64)
-...
-```
-
-Type `exit` at the prompt to exit the `controller-0` compute instance:
-
-```
-$USER@controller-0:~$ exit
-```
-> output
-
-```
-logout
-Connection to XX.XX.XX.XXX closed
-```
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
