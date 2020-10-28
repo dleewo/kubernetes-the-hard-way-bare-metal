@@ -88,7 +88,7 @@ sudo swapoff -a
 
 This will disable swap immediatly, but it is only temporary and will be reenabled if you reboot.  To disable swap permanently, edit the `/egtc/fstab` file and comment out the swap line:
 
-![fstab screenshot](/images/fstab-swap.png)
+![fstab screenshot](/images/fstab-swap.png | width=200)
   
 
 > TIP: Most VM hypervisors will alow you to take a snapshot of a VM and then in the future, you can revert to that sanpshot.  Once I got the base Ubuntu all configured with host files, ssh keys, updates, etc., I took snapshots of each server.  By doing this, I can always start over if I wanted, or start from a clean slate if I wanted to rebuild the cluster from scratch
