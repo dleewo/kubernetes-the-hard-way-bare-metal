@@ -27,7 +27,7 @@ apt update
 apt upgrade
 ```
 
-on each server to ensure all packages are up-to-date.  While not absoutly necessary, I also installed the following packages
+on each server to ensure all packages are up-to-date.  While not absoutely necessary, I also installed the following packages
 
 ```
 apt install net-tools
@@ -48,154 +48,34 @@ Kubernetes uses threee different network CIDRs.  My infrastructure network is on
 
 
 
-### Virtual Private Cloud Network
-
-In this section a dedicated [Virtual Private Cloud](https://cloud.google.com/compute/docs/networks-and-firewalls#networks) (VPC) network will be setup to host the Kubernetes cluster.
-
-Create the `kubernetes-the-hard-way` custom VPC network:
-
-```
-gcloud compute networks create kubernetes-the-hard-way --subnet-mode custom
-```
-
-A [subnet](https://cloud.google.com/compute/docs/vpc/#vpc_networks_and_subnets) must be provisioned with an IP address range large enough to assign a private IP address to each node in the Kubernetes cluster.
-
-Create the `kubernetes` subnet in the `kubernetes-the-hard-way` VPC network:
-
-```
-gcloud compute networks subnets create kubernetes \
-  --network kubernetes-the-hard-way \
-  --range 10.240.0.0/24
-```
-
-> The `10.240.0.0/24` IP address range can host up to 254 compute instances.
 
 ### Firewall Rules
 
-Create a firewall rule that allows internal communication across all protocols:
 
-```
-gcloud compute firewall-rules create kubernetes-the-hard-way-allow-internal \
-  --allow tcp,udp,icmp \
-  --network kubernetes-the-hard-way \
-  --source-ranges 10.240.0.0/24,10.200.0.0/16
-```
-
-Create a firewall rule that allows external SSH, ICMP, and HTTPS:
-
-```
-gcloud compute firewall-rules create kubernetes-the-hard-way-allow-external \
-  --allow tcp:22,tcp:6443,icmp \
-  --network kubernetes-the-hard-way \
-  --source-ranges 0.0.0.0/0
-```
-
-> An [external load balancer](https://cloud.google.com/compute/docs/load-balancing/network/) will be used to expose the Kubernetes API Servers to remote clients.
-
-List the firewall rules in the `kubernetes-the-hard-way` VPC network:
-
-```
-gcloud compute firewall-rules list --filter="network:kubernetes-the-hard-way"
-```
-
-> output
-
-```
-NAME                                    NETWORK                  DIRECTION  PRIORITY  ALLOW                 DENY  DISABLED
-kubernetes-the-hard-way-allow-external  kubernetes-the-hard-way  INGRESS    1000      tcp:22,tcp:6443,icmp        False
-kubernetes-the-hard-way-allow-internal  kubernetes-the-hard-way  INGRESS    1000      tcp,udp,icmp                Fals
-```
 
 ### Kubernetes Public IP Address
 
-Allocate a static IP address that will be attached to the external load balancer fronting the Kubernetes API Servers:
+KeySey Hightowers uses an external load balancer to expose the cluster.  That loadbalancer would distrbute requests amonst the three control plane nodes.  Since this install is local on bare metal, I will use a single server running NGINX that will act as the load balancer.
+
+
+## Servers
+
+As mentioned above, each server will run Ubuntu 20.04.1. This document will not go through the installation and setup of these servers and will assume they are ready.
+
+They should all have static IP addresses and you should add the following to each of the `/etc/hosts` files on each server:
 
 ```
-gcloud compute addresses create kubernetes-the-hard-way \
-  --region $(gcloud config get-value compute/region)
+192.168.20.30    khw-loadbalancer
+192.168.20.31    khw-controller-0
+192.168.20.32    khw-controller-1
+192.168.20.33    khw-controller-2
+192.168.20.34    khw-worker-0
+192.168.20.35    khw-worker-1
+192.168.20.36    khw-worker-2
 ```
 
-Verify the `kubernetes-the-hard-way` static IP address was created in your default compute region:
+Replace with your actual IP adrdesses and hostnames.
 
-```
-gcloud compute addresses list --filter="name=('kubernetes-the-hard-way')"
-```
-
-> output
-
-```
-NAME                     ADDRESS/RANGE   TYPE      PURPOSE  NETWORK  REGION    SUBNET  STATUS
-kubernetes-the-hard-way  XX.XXX.XXX.XXX  EXTERNAL                    us-west1          RESERVED
-```
-
-## Compute Instances
-
-The compute instances in this lab will be provisioned using [Ubuntu Server](https://www.ubuntu.com/server) 20.04, which has good support for the [containerd container runtime](https://github.com/containerd/containerd). Each compute instance will be provisioned with a fixed private IP address to simplify the Kubernetes bootstrapping process.
-
-### Kubernetes Controllers
-
-Create three compute instances which will host the Kubernetes control plane:
-
-```
-for i in 0 1 2; do
-  gcloud compute instances create controller-${i} \
-    --async \
-    --boot-disk-size 200GB \
-    --can-ip-forward \
-    --image-family ubuntu-2004-lts \
-    --image-project ubuntu-os-cloud \
-    --machine-type e2-standard-2 \
-    --private-network-ip 10.240.0.1${i} \
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-    --subnet kubernetes \
-    --tags kubernetes-the-hard-way,controller
-done
-```
-
-### Kubernetes Workers
-
-Each worker instance requires a pod subnet allocation from the Kubernetes cluster CIDR range. The pod subnet allocation will be used to configure container networking in a later exercise. The `pod-cidr` instance metadata will be used to expose pod subnet allocations to compute instances at runtime.
-
-> The Kubernetes cluster CIDR range is defined by the Controller Manager's `--cluster-cidr` flag. In this tutorial the cluster CIDR range will be set to `10.200.0.0/16`, which supports 254 subnets.
-
-Create three compute instances which will host the Kubernetes worker nodes:
-
-```
-for i in 0 1 2; do
-  gcloud compute instances create worker-${i} \
-    --async \
-    --boot-disk-size 200GB \
-    --can-ip-forward \
-    --image-family ubuntu-2004-lts \
-    --image-project ubuntu-os-cloud \
-    --machine-type e2-standard-2 \
-    --metadata pod-cidr=10.200.${i}.0/24 \
-    --private-network-ip 10.240.0.2${i} \
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-    --subnet kubernetes \
-    --tags kubernetes-the-hard-way,worker
-done
-```
-
-### Verification
-
-List the compute instances in your default compute zone:
-
-```
-gcloud compute instances list --filter="tags.items=kubernetes-the-hard-way"
-```
-
-> output
-
-```
-NAME          ZONE        MACHINE_TYPE   PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP    STATUS
-controller-0  us-west1-c  e2-standard-2               10.240.0.10  XX.XX.XX.XXX   RUNNING
-controller-1  us-west1-c  e2-standard-2               10.240.0.11  XX.XXX.XXX.XX  RUNNING
-controller-2  us-west1-c  e2-standard-2               10.240.0.12  XX.XXX.XX.XXX  RUNNING
-worker-0      us-west1-c  e2-standard-2               10.240.0.20  XX.XX.XXX.XXX  RUNNING
-worker-1      us-west1-c  e2-standard-2               10.240.0.21  XX.XX.XX.XXX   RUNNING
-worker-2      us-west1-c  e2-standard-2               10.240.0.22  XX.XXX.XX.XX   RUNNING
-```
 
 ## Configuring SSH Access
 
