@@ -80,7 +80,7 @@ They should all have static IP addresses and you should add the following to eac
 
 Replace with your actual IP adrdesses and hostnames.
 
-> TIP: Most VM hypervisors will alow you to take a snapshot of a VM and then in the future, you can revert ot that sanpshot.  Once I got the base Ubuntu all configured with host files, ssh keys, updates, I took snapshots of each server.  By doing this, can alwasy start over if I wanted, or start from a clean slate if I wanted to rebuild the cluster from scratch
+> TIP: Most VM hypervisors will alow you to take a snapshot of a VM and then in the future, you can revert to that sanpshot.  Once I got the base Ubuntu all configured with host files, ssh keys, updates, etc., I took snapshots of each server.  By doing this, I can always start over if I wanted, or start from a clean slate if I wanted to rebuild the cluster from scratch
 
 
 ## Configuring SSH Access
