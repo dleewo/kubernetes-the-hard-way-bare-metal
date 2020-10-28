@@ -12,7 +12,7 @@ The VM I provisioned are as follows:
 
 |Hostname|IP Address|Num vCPUs|RAM|Disk|
 |--------|----------|---------|---|----|
-|khw-loadbalancer|192.168.20.30|2|1GB|32GB|
+|khw-loadbalancer|192.168.20.30|1|1GB|32GB|
 |khw-controller-0|192.168.20.31|2|2GB|32GB|
 |khw-controller-1|192.168.20.32|2|2GB|32GB|
 |khw-controller-2|192.168.20.33|2|2GB|32GB|
@@ -35,13 +35,16 @@ apt install net-tools
 
 
 
-> Ensure a default compute zone and region have been set as described in the [Prerequisites](01-prerequisites.md#set-a-default-compute-region-and-zone) lab.
-
 ## Networking
 
-The Kubernetes [networking model](https://kubernetes.io/docs/concepts/cluster-administration/networking/#kubernetes-model) assumes a flat network in which containers and nodes can communicate with each other. In cases where this is not desired [network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) can limit how groups of containers are allowed to communicate with each other and external network endpoints.
+Kubernetes uses threee different network CIDRs.  My infrastructure network is ont he 192.168.20.0 subnet so that differs from Kelsey Hightower's subnet, but for the other CIDRs, I use the same subnets.  So in summary, the subnects are as follows:
 
-> Setting up network policies is out of scope for this tutorial.
+|Infrastructure|192.168.20.0/24|
+|POD Network|10.200.0.0/16|
+{Service Network|10.32.0.0/24|
+
+
+
 
 ### Virtual Private Cloud Network
 
