@@ -32,10 +32,11 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [coredns](https://github.com/coredns/coredns) v1.7.0
 * [cni](https://github.com/containernetworking/cni) v0.8.6
 * [etcd](https://github.com/coreos/etcd) v3.4.10
+* [nginx](https://www.nginx.com/) v0.0.0
 
 ## Labs
 
-This tutorial assumes you have access to the [Google Cloud Platform](https://cloud.google.com). While GCP is used for basic infrastructure requirements the lessons learned in this tutorial can be applied to other platforms.
+
 
 * [Prerequisites](docs/01-prerequisites.md)
 * [Installing the Client Tools](docs/02-client-tools.md)
