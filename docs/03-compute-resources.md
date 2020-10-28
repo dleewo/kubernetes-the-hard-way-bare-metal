@@ -20,7 +20,7 @@ The VM I provisioned are as follows:
 |`khw-worker-1`|`192.168.20.35`|2|3GB|128GB|
 |`khw-worker-2`|`192.168.20.36`|2|3GB|128GB|
 
-Each server has Ubuntu 20.04.1 and I did
+Each server has Ubuntu 20.04.1 64-bit and I did
 
 ```
 apt update
@@ -33,7 +33,7 @@ on each server to ensure all packages are up-to-date.  While not absoutely neces
 apt install net-tools
 ```
 
-For the virtual machines, thet are several options available icnlduing using toos like VMWare Workstation or Oracle VirtualBox.  For my purposes, I already had VMWare ESXi 7.0 installed on an unused PC.  You can obtain a free license from VMware.  There are limitations like the maxium number of vCPUs that can be assigned to a VM, but you will not hit any of those limits for this cluster.
+For the virtual machines, thet are several options available icnlduing using tools like VMWare Workstation or Oracle VirtualBox.  For my purpose, I already had VMWare ESXi 7.0 installed on an unused PC.  You can obtain a free license from VMware.  There are limitations like the maxium number of vCPUs that can be assigned to a VM, but you will not hit any of those limits for this cluster.
 
 
 
@@ -47,13 +47,13 @@ Kubernetes uses threee different network CIDRs.  My infrastructure network is on
 |POD Network|`10.200.0.0/16`|
 |Service Network|`10.32.0.0/24`|
 
-
+The virtual machines all use bridge networking so they have IP addresses on the same subnet as the reset of my local network.
 
 
 
 ### Firewall Rules
 
-The variousnodes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu wll not have any firewall enabled.
+The variousn odes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu wll not have any firewall enabled.
 
 
 
@@ -64,7 +64,7 @@ Keylsey Hightower uses an external load balancer to expose the cluster.  That lo
 
 ## Servers
 
-As mentioned above, each server will run Ubuntu 20.04.1. This document will not go through the installation and setup of these servers and will assume they are ready.
+As mentioned above, each server will run Ubuntu 20.04.1 64-bit. This document will not go through the installation and setup of these servers and will assume they are ready.
 
 They should all have static IP addresses and you should add the following to each of the `/etc/hosts` files on each server:
 
