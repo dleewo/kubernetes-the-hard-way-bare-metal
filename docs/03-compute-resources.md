@@ -39,7 +39,7 @@ For the virtual machines, thet are several options available icnlduing using too
 
 ## Networking
 
-Kubernetes uses threee different network CIDRs.  My infrastructure network is ont he 192.168.20.0 subnet so that differs from Kelsey Hightower's subnet, but for the other CIDRs, I use the same subnets.  So in summary, the subnets are as follows:
+Kubernetes uses threee different network CIDRs.  My infrastructure network is on the 192.168.20.0 subnet so that differs from Kelsey Hightower's subnet, but for the other CIDRs, I use the same subnets.  So in summary, the subnets are as follows:
 
 |Network|Subnet|
 |:--|:--|
@@ -53,7 +53,7 @@ The virtual machines all use bridge networking so they have IP addresses on the 
 
 ### Firewall Rules
 
-The variousn odes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu wll not have any firewall enabled.
+The variousn odes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu will not have any firewall enabled.
 
 
 
