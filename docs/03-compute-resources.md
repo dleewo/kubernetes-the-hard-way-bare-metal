@@ -12,13 +12,13 @@ The VM I provisioned are as follows:
 
 |Hostname|IP Address|Num vCPUs|RAM|Disk|
 |--------|----------|---------|---|----|
-|khw-loadbalancer|192.168.20.30|1|1GB|32GB|
-|khw-controller-0|192.168.20.31|2|2GB|32GB|
-|khw-controller-1|192.168.20.32|2|2GB|32GB|
-|khw-controller-2|192.168.20.33|2|2GB|32GB|
-|khw-worker-0|192.168.20.34|2|3GB|128GB|
-|khw-worker-1|192.168.20.35|2|3GB|128GB|
-|khw-worker-2|192.168.20.36|2|3GB|128GB|
+|`khw-loadbalancer`|`192.168.20.30`|1|1GB|32GB|
+|`khw-controller-0`|`192.168.20.31`|2|2GB|32GB|
+|`khw-controller-1`|`192.168.20.32`|2|2GB|32GB|
+|`khw-controller-2`|`192.168.20.33`|2|2GB|32GB|
+|`khw-worker-0`|`192.168.20.34`|2|3GB|128GB|
+|`khw-worker-1`|`192.168.20.35`|2|3GB|128GB|
+|`khw-worker-2`|`192.168.20.36`|2|3GB|128GB|
 
 Each server has Ubuntu 20.04.1 and I did
 
@@ -41,9 +41,9 @@ Kubernetes uses threee different network CIDRs.  My infrastructure network is on
 
 |Network|Subnet|
 |-------|------|
-|Infrastructure|192.168.20.0/24|
-|POD Network|10.200.0.0/16|
-|Service Network|10.32.0.0/24|
+|Infrastructure|`192.168.20.0/24`|
+|POD Network|`10.200.0.0/16`|
+|Service Network|`10.32.0.0/24`|
 
 
 
