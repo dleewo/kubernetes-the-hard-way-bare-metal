@@ -16,6 +16,22 @@ The VM I provisioned are as follows:
 |khw-controller-0|192.168.20.31|2|2GB|32GB|
 |khw-controller-1|192.168.20.32|2|2GB|32GB|
 |khw-controller-2|192.168.20.33|2|2GB|32GB|
+|khw-worker-0|192.168.20.34|2|3GB|128GB|
+|khw-worker-1|192.168.20.35|2|3GB|128GB|
+|khw-worker-2|192.168.20.36|2|3GB|128GB|
+
+Each server has Ubuntu 20.04.1 and I did
+
+```
+apt update
+apt upgrade
+```
+
+on each server to ensure all packages are up-to-date.  While not absoutly necessary, I also installed the following packages
+
+```
+apt install net-tools
+```
 
 
 
