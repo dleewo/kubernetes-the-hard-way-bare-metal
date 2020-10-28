@@ -11,6 +11,7 @@ A totla of 7 VMs will be used as follows:
 The VM I provisioned are as follows:
 
 |Hostname|IP Address|Num vCPUs|RAM|Disk|
+| :-- | :-- | --- | --: | --:|
 |--------|----------|---------|---|----|
 |`khw-loadbalancer`|`192.168.20.30`|1|1GB|32GB|
 |`khw-controller-0`|`192.168.20.31`|2|2GB|32GB|
