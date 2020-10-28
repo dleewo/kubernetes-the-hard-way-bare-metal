@@ -86,9 +86,11 @@ Swap must be disabled on the controller and work nodes.  This can be done as fol
 sudo swapoff -a
 ```
 
-This will disable swap immediatly, but it is only temporary and will be reenabled if you reboot.  To disable swap permanently, edit the `/etc/fstab` file and comment out the swap line:
+This will disable swap immediatly, but it is only temporary and will be re-enabled if you reboot.  To disable swap permanently, edit the `/etc/fstab` file and comment out the swap line:
  
 <img src="https://github.com/dleewo/kubernetes-the-hard-way-bare-metal/raw/main/images/fstab-swap.png" width="700" />
+
+The next time you reboot, swap will be disabled.
 
 > TIP: Most VM hypervisors will alow you to take a snapshot of a VM and then in the future, you can revert to that sanpshot.  Once I got the base Ubuntu all configured with host files, ssh keys, updates, etc., I took snapshots of each server.  By doing this, I can always start over if I wanted, or start from a clean slate if I wanted to rebuild the cluster from scratch
 
