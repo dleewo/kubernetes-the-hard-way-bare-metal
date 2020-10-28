@@ -1,6 +1,20 @@
 # Provisioning Compute Resources
 
-Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. In this lab you will provision the compute resources required for running a secure and highly available Kubernetes cluster across a single [compute zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones).
+Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. These will be provisioned in virtual machines.
+
+A totla of 7 VMs will be used as follows:
+
+1 x Load Balancer
+3 x Control plane nodes
+3 x Worker nodes
+
+The VM I provisioned are as follows:
+
+Hostname|IP Address|Num vCPUs|RAM|Disk
+========|==========|=========|===|====
+khw-loadbalancer|192.168.20.30|2|1GB|32GB
+
+
 
 > Ensure a default compute zone and region have been set as described in the [Prerequisites](01-prerequisites.md#set-a-default-compute-region-and-zone) lab.
 
