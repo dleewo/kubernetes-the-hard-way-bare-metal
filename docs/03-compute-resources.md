@@ -80,6 +80,17 @@ They should all have static IP addresses and you should add the following to eac
 
 Replace with your actual IP adrdesses and hostnames.
 
+Swap must be disabled on the controller and work nodes.  This can be done as follows
+
+```
+sudo swapoff -a
+```
+
+This will disable swap immediatly, but it is only temporary and will be reenabled if you reboot.  To disable swap permanently, edit the `/egtc/fstab` file and comment out the swap line:
+
+<insert image here>
+  
+
 > TIP: Most VM hypervisors will alow you to take a snapshot of a VM and then in the future, you can revert to that sanpshot.  Once I got the base Ubuntu all configured with host files, ssh keys, updates, etc., I took snapshots of each server.  By doing this, I can always start over if I wanted, or start from a clean slate if I wanted to rebuild the cluster from scratch
 
 
