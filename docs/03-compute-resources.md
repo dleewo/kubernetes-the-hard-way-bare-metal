@@ -40,7 +40,7 @@ apt install net-tools
 Kubernetes uses threee different network CIDRs.  My infrastructure network is ont he 192.168.20.0 subnet so that differs from Kelsey Hightower's subnet, but for the other CIDRs, I use the same subnets.  So in summary, the subnects are as follows:
 
 |Network|Subnet|
-|-------|------|
+|:--|:--|
 |Infrastructure|`192.168.20.0/24`|
 |POD Network|`10.200.0.0/16`|
 |Service Network|`10.32.0.0/24`|
