@@ -4,9 +4,9 @@ Kubernetes requires a set of machines to host the Kubernetes control plane and t
 
 A total of 7 VMs will be used as follows:
 
-1 x Load Balancer
-3 x Control plane nodes
-3 x Worker nodes
+- 1 x Load Balancer
+- 3 x Control plane nodes
+- 3 x Worker nodes
 
 The VM I provisioned are as follows:
 
@@ -79,6 +79,8 @@ They should all have static IP addresses and you should add the following to eac
 ```
 
 Replace with your actual IP adrdesses and hostnames.
+
+> TIP: Most VM hypervisors will alow you to take a snapshot of a VM and then in the future, you can revert ot that sanpshot.  Once I got the base Ubuntu all configured with host files, ssh keys, updates, I took snapshots of each server.  By doing this, can alwasy start over if I wanted, or start from a clean slate if I wanted to rebuild the cluster from scratch
 
 
 ## Configuring SSH Access
