@@ -86,7 +86,7 @@ Swap must be disabled on the controller and work nodes.  This can be done as fol
 sudo swapoff -a
 ```
 
-This will disable swap immediatly, but it is only temporary and will be reenabled if you reboot.  To disable swap permanently, edit the `/egtc/fstab` file and comment out the swap line:
+This will disable swap immediatly, but it is only temporary and will be reenabled if you reboot.  To disable swap permanently, edit the `/etc/fstab` file and comment out the swap line:
  
 <img src="https://github.com/dleewo/kubernetes-the-hard-way-bare-metal/raw/main/images/fstab-swap.png" width="700" />
 
