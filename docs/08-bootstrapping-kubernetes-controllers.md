@@ -7,7 +7,7 @@ In this lab you will bootstrap the Kubernetes control plane across three compute
 The commands in this lab must be run on each controller instance: `khw-controller-0`, `khw-ccontroller-1`, and `khw-ccontroller-2`. Login to each controller instance using the `ssh` command. Example:
 
 ```
-ssh controller-0
+ssh khw-controller-0
 ```
 
 ### Running commands in parallel with tmux
@@ -202,7 +202,9 @@ EOF
 
 ### Enable HTTP Health Checks
 
- In this section nginx will be installed and configured to accept HTTP health checks on port `80` and proxy the connections to the API server on `https://127.0.0.1:6443/healthz`.
+A NGINX load balancer will be used to distribute traffic across the three API servers and allow each API server to terminate TLS connections and validate client certificates. 
+
+The Google network load balancer as in Kelsey Hightower's guide only supports HTTP health checks which means the HTTPS endpoint exposed by the API server cannot be used. The NGINX load balancer we install will not use these health checks, but we;llk set them up anyway just in case they are needed in the future.  A nginx webserver can be used to proxy HTTP health checks on each controller. In this section nginx will be installed and configured to accept HTTP health checks on port `80` and proxy the connections to the API server on `https://127.0.0.1:6443/healthz`.
 
 > The `/healthz` API server endpoint does not require authentication by default.
 
@@ -341,79 +343,99 @@ EOF
 
 ## The Kubernetes Frontend Load Balancer
 
------------CONTINUE FROM HERE ON SATURDAY-----
+In this section , we will install and configure an NGINX load balancer.
 
-In this section you will provision an external load balancer to front the Kubernetes API Servers. The `kubernetes-the-hard-way` static IP address will be attached to the resulting load balancer.
+The commands in this sectionb must be perfomred on the load balancer instance `khw-loadbalancer`.  Login to that instance as follows:
 
-> The compute instances created in this tutorial will not have permission to complete this section. **Run the following commands from the same machine used to create the compute instances**.
+```
+ssh khw-loadbalancer
+```
 
+Install NGINX
 
-### Provision a Network Load Balancer
+```
+sudo apt-get update
+sudo apt-get install -y nginx
+```
 
-Create the external load balancer network resources:
+Add the NGINX configuration.  This will append a direct to the end og nginx.conf as it must be outside the `http` block since we are going to setup SSL pass through and will be basically load balancing TCP
+
+```
+echo "include /etc/nginx/tcpconf.d/*;" | sudo tee -a /etc/nginx/nginx.conf
+```
+
+```
+cat > khw-loadbalancer <<EOF
+stream {
+    upstream web_server {
+        # The 3 controller IP addresses
+        server 192.168.20.31:6443;
+        server 192.168.20.32:6443;
+        server 192.168.20.33:6443;
+    }
+
+    server {
+        listen 6443;
+        proxy_pass web_server;
+    }
+}
+EOF
+```
+
+Move the configuration file
 
 ```
 {
-  KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-    --region $(gcloud config get-value compute/region) \
-    --format 'value(address)')
-
-  gcloud compute http-health-checks create kubernetes \
-    --description "Kubernetes Health Check" \
-    --host "kubernetes.default.svc.cluster.local" \
-    --request-path "/healthz"
-
-  gcloud compute firewall-rules create kubernetes-the-hard-way-allow-health-check \
-    --network kubernetes-the-hard-way \
-    --source-ranges 209.85.152.0/22,209.85.204.0/22,35.191.0.0/16 \
-    --allow tcp
-
-  gcloud compute target-pools create kubernetes-target-pool \
-    --http-health-check kubernetes
-
-  gcloud compute target-pools add-instances kubernetes-target-pool \
-   --instances controller-0,controller-1,controller-2
-
-  gcloud compute forwarding-rules create kubernetes-forwarding-rule \
-    --address ${KUBERNETES_PUBLIC_ADDRESS} \
-    --ports 6443 \
-    --region $(gcloud config get-value compute/region) \
-    --target-pool kubernetes-target-pool
+  sudo mkdir -p /etc/nginx/tcpconf.d
+  sudo mv khw-loadbalancer /etc/nginx/tcpconf.d
 }
 ```
 
+Restart nginx
+
+```
+sudo systemctl restart nginx
+```
+
+```
+sudo systemctl enable nginx
+```
+
+
+
+
 ### Verification
 
-> The compute instances created in this tutorial will not have permission to complete this section. **Run the following commands from the same machine used to create the compute instances**.
-
-Retrieve the `kubernetes-the-hard-way` static IP address:
+From any of the controller nodes, grab the token for making REST calls:
 
 ```
-KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-  --region $(gcloud config get-value compute/region) \
-  --format 'value(address)')
+SECRET_NAME=$(kubectl get secrets | grep ^default | cut -f1 -d ' ')
+TOKEN=$(kubectl describe secret $SECRET_NAME | grep -E '^token' | cut -f2 -d':' | tr -d " ")
 ```
 
-Make a HTTP request for the Kubernetes version info:
+Then make a HTTP reuqest as follows to hit the load balancer:
 
 ```
-curl --cacert ca.pem https://${KUBERNETES_PUBLIC_ADDRESS}:6443/version
+curl --cacert /var/lib/kubernetes/ca.pem --header "Authorization: Bearer $TOKEN" https://192.168.20.30:6443/api
 ```
 
 > output
 
 ```
 {
-  "major": "1",
-  "minor": "18",
-  "gitVersion": "v1.18.6",
-  "gitCommit": "dff82dc0de47299ab66c83c626e08b245ab19037",
-  "gitTreeState": "clean",
-  "buildDate": "2020-07-15T16:51:04Z",
-  "goVersion": "go1.13.9",
-  "compiler": "gc",
-  "platform": "linux/amd64"
+  "kind": "APIVersions",
+  "versions": [
+    "v1"
+  ],
+  "serverAddressByClientCIDRs": [
+    {
+      "clientCIDR": "0.0.0.0/0",
+      "serverAddress": "192.168.20.33:6443"
+    }
+  ]
 }
 ```
+
+If you repeat the above curl command several times, you should see that the `serverAddress` retruned changes each time as your request is round-robined though each of the controller nodes.
 
 Next: [Bootstrapping the Kubernetes Worker Nodes](09-bootstrapping-kubernetes-workers.md)

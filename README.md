@@ -32,7 +32,7 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [coredns](https://github.com/coredns/coredns) v1.7.0
 * [cni](https://github.com/containernetworking/cni) v0.8.6
 * [etcd](https://github.com/coreos/etcd) v3.4.13
-* [nginx](https://www.nginx.com/) v0.0.0
+* [nginx](https://www.nginx.com/) v1.18.0
 
 ## Labs
 
@@ -52,3 +52,87 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [Deploying the DNS Cluster Add-on](docs/12-dns-addon.md)
 * [Smoke Test](docs/13-smoke-test.md)
 * [Cleaning Up](docs/14-cleanup.md)
+
+
+<br/>
+
+## Problems and Issues Encountered
+
+This section is a summary of the problems and issues I encountered and how I solved them.
+
+### kube-scheduler Would Not Start
+
+The first problem I ran into is that when it came to running this command to check the control plane in [Bootstrapping the Kubernetes Control Plane](08-bootstrapping-kubernetes-controllers.md) by running:
+
+```
+kubectl get componentstatuses --kubeconfig admin.kubeconfig
+```
+I received the following output - the scheduler was failing the health check
+
+```
+Warning: v1 ComponentStatus is deprecated in v1.19+
+NAME                 STATUS      MESSAGE                                                                                       ERROR
+scheduler            Unhealthy   Get "http://127.0.0.1:10251/healthz": dial tcp 127.0.0.1:10251: connect: connection refused   
+controller-manager   Healthy     ok                                                                                            
+etcd-1               Healthy     {"health":"true"}                                                                             
+etcd-2               Healthy     {"health":"true"}                                                                             
+etcd-0               Healthy     {"health":"true"}   
+```
+
+I then checked the status of the `kube-scheduler` by running
+
+```
+sudo systemctl status kube-scheduler
+```
+
+and got output as follows:
+
+```
+$ sudo systemctl status kube-scheduler
+● kube-scheduler.service - Kubernetes Scheduler
+     Loaded: loaded (/etc/systemd/system/kube-scheduler.service; enabled; vendor preset: enabled)
+     Active: activating (auto-restart) (Result: exit-code) since Sat 2020-10-31 03:30:38 UTC; 1s ago
+       Docs: https://github.com/kubernetes/kubernetes
+    Process: 88968 ExecStart=/usr/local/bin/kube-scheduler --config=/etc/kubernetes/config/kube-scheduler.yaml --v=2 (code=exited, >
+   Main PID: 88968 (code=exited, status=1/FAILURE)
+
+Oct 31 03:30:38 khw-controller-1 systemd[1]: kube-scheduler.service: Main process exited, code=exited, status=1/FAILURE
+Oct 31 03:30:38 khw-controller-1 systemd[1]: kube-scheduler.service: Failed with result 'exit-code'.
+```
+
+The `kube-scheduler` would start and then exit.  So I then tried to run the `kube-scheduler `manually off the command line and got:
+
+```
+$ sudo /usr/local/bin/kube-scheduler --config=/etc/kubernetes/config/kube-scheduler.yaml --v=2
+I1031 03:34:33.747160   89911 registry.go:173] Registering SelectorSpread plugin
+I1031 03:34:33.747320   89911 registry.go:173] Registering SelectorSpread plugin
+I1031 03:34:33.747614   89911 flags.go:59] FLAG: --add-dir-header="false"
+I1031 03:34:33.747709   89911 flags.go:59] FLAG: --address="0.0.0.0"
+
+    ...[SNIP]...
+
+I1031 03:34:33.750067   89911 flags.go:59] FLAG: --use-legacy-policy-config="false"
+I1031 03:34:33.750092   89911 flags.go:59] FLAG: --v="2"
+I1031 03:34:33.750117   89911 flags.go:59] FLAG: --version="false"
+I1031 03:34:33.750144   89911 flags.go:59] FLAG: --vmodule=""
+I1031 03:34:33.750169   89911 flags.go:59] FLAG: --write-config-to=""
+I1031 03:34:34.261500   89911 serving.go:331] Generated self-signed cert in-memory
+no kind "KubeSchedulerConfiguration" is registered for version "kubescheduler.config.k8s.io/v1alpha1" in scheme "k8s.io/kubernetes/pkg/scheduler/apis/config/scheme/scheme.go:30"
+```
+
+The last line provided the clue I needed to figure out what was going wrong.  SOme Google searching pointed me to the corretc `apiVersion` to use.  Kelsey Hightower's `kube-scheduler.yaml` file had `apiVersion` as follows:
+
+```
+apiVersion: kubescheduler.config.k8s.io/v1alpha1
+kind: KubeSchedulerConfiguration
+```
+
+but in kubernetes 1.19, it needed to be:
+
+```
+apiVersion: kubescheduler.config.k8s.io/v1beta1
+kind: KubeSchedulerConfiguration
+```
+Once I made that change, the `kube-scheduler` started to run just fine
+
+
