@@ -413,11 +413,12 @@ SECRET_NAME=$(kubectl get secrets | grep ^default | cut -f1 -d ' ')
 TOKEN=$(kubectl describe secret $SECRET_NAME | grep -E '^token' | cut -f2 -d':' | tr -d " ")
 ```
 
-Then make a HTTP reuqest as follows to hit the load balancer:
+Then make a HTTP reuqest as follows to hit the load balancer::
 
 ```
-curl --cacert /var/lib/kubernetes/ca.pem --header "Authorization: Bearer $TOKEN" https://192.168.20.30:6443/api
+curl --cacert /var/lib/kubernetes/ca.pem --header "Authorization: Bearer $TOKEN" https://khw-loadbalancer:6443/api
 ```
+
 
 > output
 

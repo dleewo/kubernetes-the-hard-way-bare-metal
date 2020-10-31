@@ -7,7 +7,7 @@ Kubernetes components are stateless and store cluster state in [etcd](https://gi
 
 ## Prerequisites
 
-The commands in this lab must be run on each controller instance: `khw-controller-0`, `khw-ccontroller-1`, and `khw-ccontroller-2`. Login to each controller instance using the `ssh` command. Example:
+The commands in this lab must be run on each controller instance: `khw-controller-0`, `khw-controller-1`, and `khw-controller-2`. Login to each controller instance using the `ssh` command. Example:
 
 ```
 ssh controller-0
