@@ -1,4 +1,4 @@
-> This is almost an identical copy of Kelsey Hightower's [Generating Kubernetes Configuration Files for Authentication](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/05-kubernetes-configuration-files.md) document.  The main changes are to the IP addresses and hostname when generating the certificates
+> This is almost an identical copy of Kelsey Hightower's [Generating Kubernetes Configuration Files for Authentication](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/05-kubernetes-configuration-files.md) document.  The main changes are to the IP addresses and hostname when generating the config files.
 <br />
 
 # Generating Kubernetes Configuration Files for Authentication
