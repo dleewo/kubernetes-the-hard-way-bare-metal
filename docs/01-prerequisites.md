@@ -1,4 +1,4 @@
-> This is a partial copy of Kelsey Hightowers [Prerequisites](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/01-prerequisites.md) document.  The steps are identical for bare metal installs
+> This is a partial copy of Kelsey Hightower's [Prerequisites](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/01-prerequisites.md) document.  The steps are identical for bare metal installs
 ---
 <br />
 

@@ -1,4 +1,4 @@
-> This is an exact copy of Kelsey Hightowers [Install the Client Tools](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/02-client-tools.md) document.  The steps are identical for bare metal installs
+> This is an exact copy of Kelsey Hightower's [Install the Client Tools](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/02-client-tools.md) document.  The steps are identical for bare metal installs
 ---
 <br />
 
