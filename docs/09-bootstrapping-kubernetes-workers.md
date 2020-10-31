@@ -88,58 +88,6 @@ Install the worker binaries:
 }
 ```
 
-### Configure CNI Networking
-
-The POD network is on the 10.200.0.0/16 subnet.  The POD CIDR will be different for each worker.
-
-Set POD_CIDR on each wokr node as follows:
-
-`khw-worker-0`
-```
-POD_CIDR=10.200.0.0/24
-```
-`khw-worker-1`
-```
-POD_CIDR=10.200.1.0/24
-```
-`khw0-worker-2`
-```
-POD_CIDR=10.200.2.0/24
-```
-
-Create the `bridge` network configuration file on each worker:
-
-```
-cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
-{
-    "cniVersion": "0.3.1",
-    "name": "bridge",
-    "type": "bridge",
-    "bridge": "cnio0",
-    "isGateway": true,
-    "ipMasq": true,
-    "ipam": {
-        "type": "host-local",
-        "ranges": [
-          [{"subnet": "${POD_CIDR}"}]
-        ],
-        "routes": [{"dst": "0.0.0.0/0"}]
-    }
-}
-EOF
-```
-
-Create the `loopback` network configuration file:
-
-```
-cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
-{
-    "cniVersion": "0.3.1",
-    "name": "lo",
-    "type": "loopback"
-}
-EOF
-```
 
 ### Configure containerd
 

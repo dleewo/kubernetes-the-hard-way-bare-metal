@@ -126,6 +126,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
   --bind-address=0.0.0.0 \\
+  --allocate-node-cidrs=true \\
   --cluster-cidr=10.200.0.0/16 \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
@@ -144,6 +145,8 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 ```
+
+> In the file above, I added the `--allocate-node-cidrs=true` as without it, later on when trying to get Flannel (the POD CNI) working, flannel would fail to run as it is unable to get the pod CIDR
 
 ### Configure the Kubernetes Scheduler
 
@@ -367,7 +370,7 @@ echo "include /etc/nginx/tcpconf.d/*;" | sudo tee -a /etc/nginx/nginx.conf
 ```
 cat > khw-loadbalancer <<EOF
 stream {
-    upstream web_server {
+    upstream kubernetes {
         # The 3 controller IP addresses
         server 192.168.20.31:6443;
         server 192.168.20.32:6443;
@@ -376,7 +379,7 @@ stream {
 
     server {
         listen 6443;
-        proxy_pass web_server;
+        proxy_pass kubernetes;
     }
 }
 EOF

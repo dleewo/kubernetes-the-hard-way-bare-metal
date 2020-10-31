@@ -58,7 +58,7 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 
 ## Problems and Issues Encountered
 
-This section is a summary of the problems and issues I encountered and how I solved them.
+This section is a summary of the problems and issues I encountered and how I solved them.  For any problem encountered, the instrcution in the labs have been updated to include any fixes.
 
 ### kube-scheduler Would Not Start
 
@@ -134,5 +134,111 @@ apiVersion: kubescheduler.config.k8s.io/v1beta1
 kind: KubeSchedulerConfiguration
 ```
 Once I made that change, the `kube-scheduler` started to run just fine
+
+
+### Flannel Failed to get the POD CIDR
+
+The deployment of flannel went fine.  Looking atht ethe daemonset, I saw:
+
+```
+$ kubectl get daemonsets -n kube-system
+NAME              DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+kube-flannel-ds   3         3         0       3            0           <none>          97m
+```
+but when I examined the pods, I saw:
+
+```
+(base) Dereks-MacBook-Pro:~ derek$ kubectl get pods -n kube-system
+NAME                    READY   STATUS             RESTARTS   AGE
+kube-flannel-ds-8x86x   0/1     CrashLoopBackOff   21         61m
+kube-flannel-ds-cdhnw   0/1     CrashLoopBackOff   21         63m
+kube-flannel-ds-l4fp8   0/1     CrashLoopBackOff   15         53m
+```
+
+The pods were failing to run.  Looking tah telogs or the one of them showed:
+
+```
+(base) Dereks-MacBook-Pro:~ derek$ kubectl logs kube-flannel-ds-8x86x -n kube-system
+I1031 20:27:00.726041       1 main.go:518] Determining IP address of default interface
+I1031 20:27:00.726479       1 main.go:531] Using interface with name ens160 and address 192.168.20.34
+I1031 20:27:00.726494       1 main.go:548] Defaulting external address to interface address (192.168.20.34)
+W1031 20:27:00.726514       1 client_config.go:517] Neither --kubeconfig nor --master was specified.  Using the inClusterConfig.  This might not work.
+I1031 20:27:00.735383       1 kube.go:119] Waiting 10m0s for node controller to sync
+I1031 20:27:00.736097       1 kube.go:306] Starting kube subnet manager
+I1031 20:27:01.736204       1 kube.go:126] Node controller sync successful
+I1031 20:27:01.736226       1 main.go:246] Created subnet manager: Kubernetes Subnet Manager - khw-worker-0
+I1031 20:27:01.736230       1 main.go:249] Installing signal handlers
+I1031 20:27:01.736315       1 main.go:390] Found network config - Backend type: vxlan
+I1031 20:27:01.736371       1 vxlan.go:121] VXLAN config: VNI=1 Port=0 GBP=false Learning=false DirectRouting=false
+E1031 20:27:01.736643       1 main.go:291] Error registering network: failed to acquire lease: node "khw-worker-2" pod cidr not assigned
+I1031 20:27:01.736679       1 main.go:370] Stopping shutdownHandler...
+```
+
+The logs indicated that the pod cidr was not assigned.
+
+The `kubelet-config.yaml` definitely had the podCIDR:
+
+```
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+  x509:
+    clientCAFile: "/var/lib/kubernetes/ca.pem"
+authorization:
+  mode: Webhook
+clusterDomain: "cluster.local"
+clusterDNS:
+  - "10.32.0.10"
+podCIDR: "10.200.2.0/24"
+resolvConf: "/run/systemd/resolve/resolv.conf"
+runtimeRequestTimeout: "15m"
+tlsCertFile: "/var/lib/kubelet/khw-worker-2.pem"
+tlsPrivateKeyFile: "/var/lib/kubelet/khw-worker-2-key.pem"
+```
+After much Google searching, I found where some said they had to add the `--allocate-node-cidrs=true` flag to the kube-controller-manager.  So I modified the creation of file `/etc/systemd/system/kube-controller-manager.service` so it was crerated as follows:
+
+```
+cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-controller-manager \\
+  --bind-address=0.0.0.0 \\
+  --allocate-node-cidrs=true \\
+  --cluster-cidr=10.200.0.0/16 \\
+  --cluster-name=kubernetes \\
+  --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
+  --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
+  --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \\
+  --leader-elect=true \\
+  --root-ca-file=/var/lib/kubernetes/ca.pem \\
+  --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
+  --service-cluster-ip-range=10.32.0.0/24 \\
+  --use-service-account-credentials=true \\
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Once I did that, flannel started up just fine.  I think it's because I read that in cluster mode, the pod CIDRs come from the master nodes.
+
+```
+(base) Dereks-MacBook-Pro:~ derek$ kubectl get pods -n kube-system -o wide
+NAME                    READY   STATUS    RESTARTS   AGE    IP              NODE           NOMINATED NODE   READINESS GATES
+kube-flannel-ds-8x86x   1/1     Running   37         146m   192.168.20.34   khw-worker-0   <none>           <none>
+kube-flannel-ds-cdhnw   1/1     Running   37         148m   192.168.20.36   khw-worker-2   <none>           <none>
+kube-flannel-ds-l4fp8   1/1     Running   31         138m   192.168.20.35   khw-worker-1   <none>           <none>
+```
+
 
 

@@ -91,4 +91,4 @@ khw-worker-1   Ready    <none>   17m   v1.19.3
 khw-worker-2   Ready    <none>   17m   v1.19.3
 ```
 
-Next: [Provisioning Pod Network Routes](11-pod-network-routes.md)
+Next: [Provisioning Pod Network](11-pod-network.md)
