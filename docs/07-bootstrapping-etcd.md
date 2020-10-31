@@ -59,7 +59,7 @@ Each etcd member must have a unique name within an etcd cluster. Set the etcd na
 ETCD_NAME=$(hostname -s)
 ```
 
-Create the `etcd.service` systemd unit file:
+Create the `etcd.service` systemd unit file.  Note the IP addresses ands hostname in the `--initial-cluster khw-controller` argument:
 
 ```
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
