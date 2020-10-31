@@ -31,7 +31,7 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [containerd](https://github.com/containerd/containerd) v1.3.6
 * [coredns](https://github.com/coredns/coredns) v1.7.0
 * [cni](https://github.com/containernetworking/cni) v0.8.6
-* [etcd](https://github.com/coreos/etcd) v3.4.10
+* [etcd](https://github.com/coreos/etcd) v3.4.13
 * [nginx](https://www.nginx.com/) v0.0.0
 
 ## Labs
