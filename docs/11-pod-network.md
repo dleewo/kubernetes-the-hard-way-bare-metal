@@ -28,7 +28,7 @@ This kube-flannel.yml is idential to the one Kelsey Hightowed used except that N
 ```
 
 ```
-kubectl apply -f https://github.com/dleewo/kubernetes-the-hard-way-bare-metal/blob/main/deployments/kube-flannel.yml 
+kubectl apply -f https://raw.githubusercontent.com/dleewo/kubernetes-the-hard-way-bare-metal/main/deployments/kube-flannel.yml
 ```
 > Output
 

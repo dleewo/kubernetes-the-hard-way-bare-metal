@@ -27,7 +27,7 @@ data:
 ```
 
 ```
-kubectl apply -f https://github.com/dleewo/kubernetes-the-hard-way-bare-metal/blob/main/deployments/coredns-1.7.0.yaml
+kubectl apply -f https://raw.githubusercontent.com/dleewo/kubernetes-the-hard-way-bare-metal/main/deployments/coredns-1.7.0.yaml
 ```
 
 > output
