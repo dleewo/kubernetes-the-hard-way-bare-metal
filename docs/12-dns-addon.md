@@ -4,10 +4,30 @@ In this lab you will deploy the [DNS add-on](https://kubernetes.io/docs/concepts
 
 ## The DNS Cluster Add-on
 
-Deploy the `coredns` cluster add-on:
+Deploy the `coredns` cluster add-on.  This uses a customzied YAML file that adds `forward . /etc/resolv.conf` as follows:
 
 ```
-kubectl apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns-1.7.0.yaml
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
+        }
+        forward . /etc/resolv.conf
+        prometheus :9153
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+```
+
+```
+kubectl apply -f https://github.com/dleewo/kubernetes-the-hard-way-bare-metal/blob/main/deployments/coredns-1.7.0.yaml
 ```
 
 > output
@@ -52,8 +72,8 @@ kubectl get pods -l run=busybox
 > output
 
 ```
-NAME      READY   STATUS    RESTARTS   AGE
-busybox   1/1     Running   0          3s
+NAME                      READY   STATUS    RESTARTS   AGE
+busybox-5d494584b-8w47z   1/1     Running   0          9s
 ```
 
 Retrieve the full name of the `busybox` pod:
@@ -77,5 +97,27 @@ Address 1: 10.32.0.10 kube-dns.kube-system.svc.cluster.local
 Name:      kubernetes
 Address 1: 10.32.0.1 kubernetes.default.svc.cluster.local
 ```
+
+Try to do a lookup of an external site:
+
+```
+kubectl exec -ti $POD_NAME -- nslookup www.google.com
+```
+
+> output
+
+```
+Server:    10.32.0.10
+Address 1: 10.32.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      www.google.com
+Address 1: 2607:f8b0:4023:1004::93
+Address 2: 2607:f8b0:4023:1004::69
+Address 3: 2607:f8b0:4023:1004::67
+Address 4: 2607:f8b0:4023:1004::68
+Address 5: 172.217.12.68 dfw28s05-in-f4.1e100.net
+```
+
+
 
 Next: [Smoke Test](13-smoke-test.md)
