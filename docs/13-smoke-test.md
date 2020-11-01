@@ -1,3 +1,5 @@
+> This is almost an identical copy of Kelsey Hightower's [Smoke Test](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/13-smoke-test.md) document.  The main changes are to the IP addresses and hostname when generating the certificates
+
 # Smoke Test
 
 In this lab you will complete a series of tasks to ensure your Kubernetes cluster is functioning correctly.
