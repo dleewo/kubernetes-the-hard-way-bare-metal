@@ -240,5 +240,132 @@ kube-flannel-ds-cdhnw   1/1     Running   37         148m   192.168.20.36   khw-
 kube-flannel-ds-l4fp8   1/1     Running   31         138m   192.168.20.35   khw-worker-1   <none>           <none>
 ```
 
+### CoreDNS Pods would not start
 
+After deploying CoreDNS, the pods would start, but never actaully get to a fully running state.  When I examined the logs for one of the pods, I noticed the following error:
+
+```
+E1101 01:21:15.769797       1 reflector.go:178] pkg/mod/k8s.io/client-go@v0.18.3/tools/cache/reflector.go:125: Failed to list *v1.Service: Get "https://10.32.0.1:443/api/v1/services?limit=500&resourceVersion=0": dial tcp 10.32.0.1:443: i/o timeout
+[INFO] plugin/ready: Still waiting on: "kubernetes"
+[INFO] plugin/ready: Still waiting on: "kubernetes"
+[INFO] plugin/ready: Still waiting on: "kubernetes"
+[INFO] plugin/ready: Still waiting on: "kubernetes"
+```
+
+The pod was not able to access the kubernetes API
+
+After much digging and investigating, I found out that the problem wasn't a CoreDNS problem, but rather a pod networking problem.  While pods were able to communicate with other pods, even on other nodes, pods could not access any other subnet, only the `10.200.0.0/16` subnet.  
+
+I found others with a simialr issue and one reponse from someone mentioned that the issue was that flannel was using a different netwrok to the POD CIDR.  I did notice that the kube-flannel.yml file had a section azs follows:
+
+```
+  net-conf.json: |
+    {
+      "Network": "10.244.0.0/16",
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
+```
+
+I decided to try changing that to
+
+```
+  net-conf.json: |
+    {
+      "Network": "10.200.0.0/16",
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
+```
+
+and once I got it all re-deployed, CoreDNS started to work.
+
+As a test, I deployed busybox and execed into and tried a couple (nslookup and curl) commands as followed:
+
+```
+$ kubectl exec -ti busybox-6bbcc6579-hkvnt -- sh
+/ # nslookup kubernetes
+Server:    10.32.0.10
+Address 1: 10.32.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      kubernetes
+Address 1: 10.32.0.1 kubernetes.default.svc.cluster.local
+
+
+/ # curl https://192.168.20.30:6443
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: http://curl.haxx.se/docs/sslcerts.html
+
+curl performs SSL certificate verification by default, using a "bundle"
+ of Certificate Authority (CA) public keys (CA certs). If the default
+ bundle file isn't adequate, you can specify an alternate file
+ using the --cacert option.
+If this HTTPS server uses a certificate signed by a CA represented in
+ the bundle, the certificate verification probably failed due to a
+ problem with the certificate (it might be expired, or the name might
+ not match the domain name in the URL).
+If you'd like to turn off curl's verification of the certificate, use
+ the -k (or --insecure) option.
+/ # exit
+command terminated with exit code 60
+```
+
+The `nslookup` was able to resolve `kubernetes` which is the kubernetes API service name.  I was also able to access the localbalancer IP address which is external to the system.
+
+I did discover another problem though where while CoreDNS could resolve kubernetes services, it was unabel to resovle exteranl hostname, e.g `nslookup www.yahoo.com` would fail.  This is covered in the next section
+
+
+### CoreNDS Cannot Resolve External Sites
+
+CoreNDS is unable to resolve external sites.  In looking at the logs for the pods, I noticed:
+
+```
+[ERROR] plugin/errors: 2 www.yahoo.com. AAAA: plugin/loop: no next plugin found
+[ERROR] plugin/errors: 2 www.yahoo.com. A: plugin/loop: no next plugin found
+[ERROR] plugin/errors: 2 www.yahoo.com. AAAA: plugin/loop: no next plugin found
+[ERROR] plugin/errors: 2 www.yahoo.com. A: plugin/loop: no next plugin found
+```
+
+To resolve this, I had to cusotmize the coredns-1.7.0.yaml file to add `forward . /etc/resolv.conf` here:
+
+```
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
+        }
+        forward . /etc/resolv.conf
+        prometheus :9153
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+```
+
+After re-deploying, I used the busybox pod and was able to resolve external sites:
+
+ ```
+$ kubectl exec -ti busybox-6bbcc6579-c7fsr -- sh
+/ # nslookup www.yahoo.com
+Server:    10.32.0.10
+Address 1: 10.32.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      www.yahoo.com
+Address 1: 74.6.231.20 media-router-fp73.prod.media.vip.ne1.yahoo.com
+Address 2: 74.6.143.25 media-router-fp73.prod.media.vip.bf1.yahoo.com
+Address 3: 74.6.231.21 media-router-fp74.prod.media.vip.ne1.yahoo.com
+Address 4: 74.6.143.26 media-router-fp74.prod.media.vip.bf1.yahoo.com
+Address 5: 2001:4998:124:1507::f000 media-router-fp73.prod.media.vip.bf1.yahoo.com
+Address 6: 2001:4998:44:3507::8000 media-router-fp73.prod.media.vip.ne1.yahoo.com
+Address 7: 2001:4998:44:3507::8001 media-router-fp74.prod.media.vip.ne1.yahoo.com
+Address 8: 2001:4998:124:1507::f001 media-router-fp74.prod.media.vip.bf1.yahoo.com
+```
 

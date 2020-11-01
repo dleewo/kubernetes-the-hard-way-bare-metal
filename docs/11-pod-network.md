@@ -13,10 +13,22 @@ First, enable IP forwarding on each worker node
 sudo sysctl net.ipv4.conf.all.forwarding=1
 ```
 
-One one of the controller nodes, or from your remove server where you configure `kubectl`, apply the YAML for Flannel
+One one of the controller nodes, or from your remove server where you configure `kubectl`, apply the YAML for Flannel.
+
+This kube-flannel.yml is idential to the one Kelsey Hightowed used except that Network was changed from `10.244.0.0/16` to `10.200.0.0/16` to match the pod CIDR.  Here is a snaippet shoiwng that section:
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml  
+  net-conf.json: |
+    {
+      "Network": "10.200.0.0/16",
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
+```
+
+```
+kubectl apply -f https://github.com/dleewo/kubernetes-the-hard-way-bare-metal/blob/main/deployments/kube-flannel.yml 
 ```
 > Output
 
