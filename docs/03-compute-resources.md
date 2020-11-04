@@ -53,13 +53,13 @@ The virtual machines all use bridge networking so they have IP addresses on the 
 
 ### Firewall Rules
 
-The variousn odes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu will not have any firewall enabled.
+The various nodes must be able to communicate with each other over a variety of ports.  It would easiest to not have any firewall enabled.  By default, a new install of Ubuntu will not have any firewall enabled.
 
 
 
 ### Kubernetes Public IP Address
 
-Keylsey Hightower uses an external load balancer to expose the cluster.  That load balancer would distrbute requests amonst the three control plane nodes.  Since this install is local on bare metal, I will use a single server running NGINX that will act as the load balancer.
+Keylsey Hightower uses an external load balancer to expose the cluster.  That load balancer would distribute requests amongst the three control plane nodes.  Since this install is local on bare metal, I will use a single server running NGINX that will act as the load balancer.
 
 
 ## Servers
@@ -97,7 +97,7 @@ The next time you reboot, swap will be disabled.
 
 ## Configuring SSH Access
 
-SSH will be used to configure the controller and worker instances. Be sure to insatll and configure SSH on each server.  It is also recommendeded that you use SSH keys to make the use of ssh a lot easier.  Setting up the use of SSH keys is beyond hte scope of this document, but there are many guies on how to do that on the internet.
+SSH will be used to configure the controller and worker instances. Be sure to install and configure SSH on each server.  It is also recommendeded that you use SSH keys to make the use of ssh a lot easier.  Setting up the use of SSH keys is beyond the scope of this document, but there are many guides on how to do that on the internet.
 
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
